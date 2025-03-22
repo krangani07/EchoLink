@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 // use Illuminate\Foundation\Application;
 // use Inertia\Inertia;
@@ -17,12 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth','verified'])->group(function () {
     Route::get('/',[HomeController::class,'home'])->name('dashboard');
-    Route::get('/user/{user}',function(){
+    Route::get('user/{user}',[MessageController::class,'byUser'])->name('chat.user');
+    Route::get('group/{group}',[MessageController::class,'byGroup'])->name('chat.group');
+    Route::post('/message',[MessageController::class,'store'])->name('message.store');
+    Route::post('/message/{message}',[MessageController::class,'destroy'])->name('Message.destroy');
+    Route::get('/message/older/{message}',[MessageController::class,'loadOlder'])->name('Message.loadOlder');
 
-    })->name('chat.user');
-    Route::get('/group/{group}',function(){
-
-    })->name('chat.group');
 });
 
 

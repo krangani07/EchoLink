@@ -22,13 +22,13 @@ class DatabaseSeeder extends Seeder
 		User::factory()->create([
 			'name' => 'kaushal',
 			'email' => 'kaushal@example.com',
-			'password' => bcrypt('asdasdas'),
+			'password' => bcrypt('kaushal'),
 			'is_admin' => true,
 		]);
 		User::factory()->create([
 			'name' => 'Jane Doe',
 			'email' => 'jane@example.com',
-			'password' => bcrypt('password'),
+			'password' => bcrypt('kaushal'),
 
 		]);
 		User::factory(10)->create();
