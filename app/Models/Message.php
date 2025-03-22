@@ -12,13 +12,13 @@ class Message extends Model
         'message',
         'sender_id',
         'group_id',
-        'reciver_id',
+        'receiver_id',
     ];
     public function sender(){
         return $this->belongsTo(User::class, 'sender_id');
     }
-    public function reciver(){
-        return $this->belongsTo(User::class, 'reciver_id');
+    public function receiver(){
+        return $this->belongsTo(User::class, 'receiver_id');
     }
     public function group(){
         return $this->belongsTo(Group::class);
