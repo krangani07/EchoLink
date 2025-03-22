@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import ConversationItem from "@/Components/App/ConversationItem";
-// import Echo from "laravel-echo";
 
 const ChatLayout = ({ children }) => {
     const page = usePage();
