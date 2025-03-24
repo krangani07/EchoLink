@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    console.log("user", user);
     const conversations = usePage().props.conversations;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] = 
