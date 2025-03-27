@@ -62,7 +62,7 @@ class MessageController extends Controller
                 ->paginate(10);
         }
 
-        return MessageResource::collection($message);
+        return MessageResource::collection($messages);
     }
 
     public function store(StoreMessageRequest $request)
