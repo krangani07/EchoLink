@@ -1,52 +1,56 @@
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 
-const CustomAudioPlayer = ({ src, showVolume = true }) => {
+const CustomAudioPlayer = ({ file, showVolume = true }) => {
     const audioRef = useRef();
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
-    
-    useEffect(() => {
-        const audio = audioRef.current;
-        if (audio) {
-            audio.addEventListener('loadedmetadata', () => {
-                if (!isNaN(audio.duration)) {
-                    setDuration(audio.duration);
-                }
-            });
-        }
-        return () => {
-            if (audio) {
-                audio.removeEventListener('loadedmetadata', () => {});
-            }
-        };
-    }, []);
-
+ 
     const togglePlayPause = () => {
         const audio = audioRef.current;
         if (isPlaying) {
             audio.pause();
         } else {
             audio.play();
+            setDuration(audio.duration); 
         }
         setIsPlaying(!isPlaying);
+        console.log("Audio source:", audioRef.current.src);
+        console.log("Audio ready state:", audioRef.current.readyState);
+        console.log("File prop:", file);
+        console.log("Is playing:", isPlaying);
+        console.log("Duration:", audio.duration);
     };
 
-    const handleTimeUpdate = () => {
+    const handleVolumeChange = (e) => {
+        const vol = e.target.value;
+        audioRef.current.volume = vol;
+        setVolume(vol);
+    };
+    const handleTimeUpdate = (e) => {
         const audio = audioRef.current;
-        if (audio && !isNaN(audio.duration)) {
-            setCurrentTime(audio.currentTime);
-        }
+        setDuration(audio.duration);
+        setCurrentTime(audio.currentTime);
+    };
+    const handleLoadedMetadata = (e) => {
+            setDuration(e.target.duration)
+    };
+    const handleSeekChange = (e) => {
+        const time = e.target.value;
+        audioRef.current.currentTime = time;
+        setCurrentTime(time);
     };
 
     return (
         <div className="w-full flex items-center gap-2 py-2 px-3 rounded-md bg-slate-800">
             <audio
                 ref={audioRef}
-                src={src.url}
+                src={file.url}
+                controls
                 onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
                 className="hidden"
             />
             <button onClick={togglePlayPause}>
@@ -60,11 +64,7 @@ const CustomAudioPlayer = ({ src, showVolume = true }) => {
                     max="1"
                     step="0.01"
                     value={volume}
-                    onChange={(e) => {
-                        const vol = e.target.value;
-                        audioRef.current.volume = vol;
-                        setVolume(vol);
-                    }}
+                    onChange={handleVolumeChange}
                 />
             )}
             <input
@@ -73,12 +73,8 @@ const CustomAudioPlayer = ({ src, showVolume = true }) => {
                 min="0"
                 max={duration || 0}
                 step="0.01"
-                value={currentTime}
-                onChange={(e) => {
-                    const time = e.target.value;
-                    audioRef.current.currentTime = time;
-                    setCurrentTime(time);
-                }}
+                value={currentTime || 0}
+                onChange={handleSeekChange}
             />
         </div>
     );

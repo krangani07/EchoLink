@@ -176,7 +176,7 @@ const MessageInput = ({ conversation = null }) => {
                             )}
                             {isAudio(file.file) && (
                                 <CustomAudioPlayer
-                                    src={file}
+                                    file={file}
                                     showVolume={false}
                                 />
                             )}
