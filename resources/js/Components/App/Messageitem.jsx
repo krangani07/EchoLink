@@ -35,6 +35,9 @@ const MessageItem = ({ message,attachmentClick }) => {
                         : "")
                 }
             >
+                {message.sender_id === currentUser.id &&(
+                    <MessageOptionsDropdown />
+                )}
                 <div className="chat-message">
                     <div className="chat-message-content">
                         <ReactMarkdown>{message.message}</ReactMarkdown>

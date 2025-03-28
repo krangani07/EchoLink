@@ -26,6 +26,12 @@ function Home({ selectedConversation = null, messages = null }) {
             selectedConversation.id == message.group_id
         ) {
             setLocalMessages((prevMessages) => [...prevMessages, message]);
+            // Scroll to bottom after new message
+            setTimeout(() => {
+                if (messagesCtrRef.current) {
+                    messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
+                }
+            }, 100);
         }
         if (
             (selectedConversation &&
@@ -34,6 +40,12 @@ function Home({ selectedConversation = null, messages = null }) {
             selectedConversation.id == message.receiver_id
         ) {
             setLocalMessages((prevMessages) => [...prevMessages, message]);
+            // Scroll to bottom after new message
+            setTimeout(() => {
+                if (messagesCtrRef.current) {
+                    messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
+                }
+            }, 100);
         }
     };
 
