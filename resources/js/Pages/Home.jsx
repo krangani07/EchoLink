@@ -8,6 +8,7 @@ import MessageItem from "@/Components/App/Messageitem";
 import MessageInput from "@/Components/App/MessageInput";
 import { useEventBus } from "@/Eventbus";
 import axios from "axios"; // Correct import for axios
+import AttachmentPreviewModal from "@/Components/App/AttachmentPreviewModal";
 
 function Home({ selectedConversation = null, messages = null }) {
     const [localMessages, setLocalMessages] = useState([]);
@@ -15,6 +16,8 @@ function Home({ selectedConversation = null, messages = null }) {
     const [scrollFromBottom, setScrollFromBottom] = useState(0);
     const messagesCtrRef = useRef(null);
     const loadMoreIntersect = useRef(null);
+    const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
+    const [previewAttachment, setpreviewAttachment] = useState({});
     const { on } = useEventBus();
     const messageCreated = (message) => {
         if (
@@ -27,19 +30,17 @@ function Home({ selectedConversation = null, messages = null }) {
         if (
             (selectedConversation &&
                 selectedConversation.is_user &&
-                (selectedConversation.id == message.sender_id) ||
-            selectedConversation.id == message.receiver_id)
+                selectedConversation.id == message.sender_id) ||
+            selectedConversation.id == message.receiver_id
         ) {
             setLocalMessages((prevMessages) => [...prevMessages, message]);
         }
     };
 
     const loadMoreMessages = useCallback(() => {
-
         if (noMoreMessages) {
             return;
         }
-
 
         const firstMessage = localMessages[0];
         axios // Use lowercase axios here
@@ -62,8 +63,18 @@ function Home({ selectedConversation = null, messages = null }) {
                     return [...data.data.reverse(), ...prevMessages];
                 });
             });
-    }, [localMessages, noMoreMessages]) 
+    }, [localMessages, noMoreMessages]);
 
+    const onAttachmentClick = (attachments, ind) => {
+        setpreviewAttachment({
+            attachments,
+            ind,
+        });
+        // console.log("onAttachmentClick ", attachments);
+        setShowAttachmentPreview(true);
+    };
+    // console.log("showAttachmentPreview", showAttachmentPreview);
+    // console.log("previewAttachment", previewAttachment);
     useEffect(() => {
         if (!messagesCtrRef.current) return;
         setTimeout(() => {
@@ -73,14 +84,13 @@ function Home({ selectedConversation = null, messages = null }) {
         messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
 
         const offCreated = on("message.created", messageCreated);
-        
+
         setScrollFromBottom(0);
         setNoMoreMessages(false);
-        
+
         return () => {
             offCreated();
         };
-
     }, [selectedConversation]);
 
     useEffect(() => {
@@ -100,23 +110,23 @@ function Home({ selectedConversation = null, messages = null }) {
             return;
         }
         const observer = new IntersectionObserver(
-            (entries) => 
+            (entries) =>
                 entries.forEach(
                     (entry) => entry.isIntersecting && loadMoreMessages()
-                ),{
-                    rootMargin:"0px 0px 250px 0px",
-                }
+                ),
+            {
+                rootMargin: "0px 0px 250px 0px",
+            }
         );
 
-        if( loadMoreIntersect.current){
-            setTimeout(()=>{
-                observer.observe(loadMoreIntersect.current)
-            },100)
+        if (loadMoreIntersect.current) {
+            setTimeout(() => {
+                observer.observe(loadMoreIntersect.current);
+            }, 100);
         }
         return () => {
             observer.disconnect();
         };
-
     }, [localMessages]);
 
     return (
@@ -148,42 +158,34 @@ function Home({ selectedConversation = null, messages = null }) {
                         )}
                         {localMessages.length > 0 && (
                             <div className="flex-1 flex flex-col">
-                                <div ref={loadMoreIntersect} className="h-1 w-full"></div>
+                                <div
+                                    ref={loadMoreIntersect}
+                                    className="h-1 w-full"
+                                ></div>
                                 {localMessages.map((message) => (
                                     <MessageItem
                                         key={message.id}
                                         message={message}
+                                        attachmentClick={onAttachmentClick}
                                     />
                                 ))}
-                                
                             </div>
                         )}
                     </div>
                     <MessageInput conversation={selectedConversation} />
                 </>
             )}
+            {previewAttachment.attachments && (
+                <AttachmentPreviewModal
+                    attachments={previewAttachment.attachments}
+                    index={previewAttachment.ind}
+                    show={showAttachmentPreview}
+                    onClose={() => setShowAttachmentPreview(false)}
+                />
+            )}
         </>
     );
-    // <ChatLayout
-    // header={
-    //     <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-    //         Dashboard
-    //     </h2>
-    // }
-    // >
-    /* <Head title="Dashboard" /> */
-
-    /* <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
-                            You're logged in!
-                        </div>
-                    </div>
-                </div>
-            </div> */
-    // Messages
-    // </ChatLayout>
+  
 }
 
 Home.layout = (page) => {
