@@ -49,6 +49,64 @@ function Home({ selectedConversation = null, messages = null }) {
         }
     };
 
+    // Remove the duplicate useEffect and simplify the messageDeleted function
+    const messageDeleted = (messageId) => {
+        console.log("Message deleted event received with ID:", messageId);
+        
+        // Filter out the deleted message by ID
+        setLocalMessages((prevMessages) => {
+            console.log("Filtering messages, current count:", prevMessages.length);
+            const filteredMessages = prevMessages.filter((m) => m.id !== messageId);
+            console.log("Messages after filtering:", filteredMessages.length);
+            return filteredMessages;
+        });
+    }
+
+    // Keep only one useEffect for event listeners and remove the duplicate
+    useEffect(() => {
+        if (!messagesCtrRef.current) return;
+        setTimeout(() => {
+            messagesCtrRef.current.scrollTop =
+                messagesCtrRef.current.scrollHeight;
+        }, 10);
+        messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
+    
+        console.log("Setting up event listeners");
+        const offCreated = on("message.created", messageCreated);
+        const offDeleted = on("messageDeleted", messageDeleted);
+        
+        setScrollFromBottom(0);
+        setNoMoreMessages(false);
+    
+        return () => {
+            console.log("Cleaning up event listeners");
+            offCreated();
+            offDeleted();
+        };
+    }, [selectedConversation]);
+    
+    // Remove this duplicate useEffect (lines ~115-135)
+    // useEffect(() => {
+    //     if (!messagesCtrRef.current) return;
+    //     setTimeout(() => {
+    //         messagesCtrRef.current.scrollTop =
+    //             messagesCtrRef.current.scrollHeight;
+    //     }, 10);
+    //     messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
+    // 
+    //     const offCreated = on("message.created", messageCreated);
+    //     // Make sure this matches the event name in MessageOptionsDropdown
+    //     const offDeleted = on("messageDeleted", messageDeleted);
+    // 
+    //     setScrollFromBottom(0);
+    //     setNoMoreMessages(false);
+    // 
+    //     return () => {
+    //         offCreated();
+    //         offDeleted();
+    //     };
+    // }, [selectedConversation]);
+
     const loadMoreMessages = useCallback(() => {
         if (noMoreMessages) {
             return;
@@ -96,12 +154,15 @@ function Home({ selectedConversation = null, messages = null }) {
         messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
 
         const offCreated = on("message.created", messageCreated);
+        // Make sure this matches the event name in MessageOptionsDropdown
+        const offDeleted = on("messageDeleted", messageDeleted);
 
         setScrollFromBottom(0);
         setNoMoreMessages(false);
 
         return () => {
             offCreated();
+            offDeleted();
         };
     }, [selectedConversation]);
 
@@ -176,7 +237,7 @@ function Home({ selectedConversation = null, messages = null }) {
                                 ></div>
                                 {localMessages.map((message) => (
                                     <MessageItem
-                                        key={message.id}
+                                        key={`message-${message.id}`} // Add a prefix to ensure uniqueness
                                         message={message}
                                         attachmentClick={onAttachmentClick}
                                     />

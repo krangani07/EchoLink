@@ -4,6 +4,7 @@ import { MicrophoneIcon, StopCircleIcon } from "@heroicons/react/24/solid";
 const AudioRecorder = ({fileReady}) => {
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [recording, setRecording] = useState(false);
+    const [audioChunks, setAudioChunks] = useState([]);
 
     const onMicrophoneClick = async () => {
         if (recording) {
