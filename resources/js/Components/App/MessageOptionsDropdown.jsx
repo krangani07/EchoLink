@@ -2,25 +2,29 @@ import {
     Menu,
     Transition,
 } from "@headlessui/react";
-import { Fragment, useRef } from "react";
+import { Fragment, useRef, useState } from "react";
 import {
     EllipsisVerticalIcon,
     TrashIcon,
 } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { useEventBus } from "../../EventBus";
-import PreviousMap_ from "postcss/lib/previous-map";
 
 export default function MessageOptionsDropdown({ message }) {
     const { emit } = useEventBus();
     // Use a ref to track deletion state instead of useState to avoid re-renders
     const isDeleting = useRef(false);
+    // Add state to track if menu should be shown
+    const [isDeleted, setIsDeleted] = useState(false);
 
     const onMessageDelete = () => {
         // Prevent multiple delete attempts
         if (isDeleting.current) return;
         
         isDeleting.current = true;
+        
+        // First set the deleted state to hide the dropdown
+        setIsDeleted(true);
         
         axios
             .delete(route('message.destroy', message.id))
@@ -31,6 +35,8 @@ export default function MessageOptionsDropdown({ message }) {
             })
             .catch((err) => {
                 console.error("Error deleting message:", err);
+                // If there's an error, show the dropdown again
+                setIsDeleted(false);
             })
             .finally(() => {
                 // Reset the deleting state after a delay
@@ -39,6 +45,11 @@ export default function MessageOptionsDropdown({ message }) {
                 }, 300);
             });
     };
+
+    // If message is deleted, don't render the dropdown
+    if (isDeleted) {
+        return null;
+    }
 
     return (
         <div className="absolute right-full text-gray-100 top-1/2 -translate-y-1/2 z-10">

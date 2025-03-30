@@ -19,50 +19,62 @@ function Home({ selectedConversation = null, messages = null }) {
     const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
     const [previewAttachment, setpreviewAttachment] = useState({});
     const { on } = useEventBus();
-    const messageCreated = (message) => {
-        if (
-            selectedConversation &&
-            selectedConversation.is_group &&
-            selectedConversation.id == message.group_id
-        ) {
-            setLocalMessages((prevMessages) => [...prevMessages, message]);
-            // Scroll to bottom after new message
-            setTimeout(() => {
-                if (messagesCtrRef.current) {
-                    messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
-                }
-            }, 100);
-        }
-        if (
-            (selectedConversation &&
-                selectedConversation.is_user &&
-                selectedConversation.id == message.sender_id) ||
-            selectedConversation.id == message.receiver_id
-        ) {
-            setLocalMessages((prevMessages) => [...prevMessages, message]);
-            // Scroll to bottom after new message
-            setTimeout(() => {
-                if (messagesCtrRef.current) {
-                    messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
-                }
-            }, 100);
-        }
-    };
-
-    // Remove the duplicate useEffect and simplify the messageDeleted function
+    
+    // Define messageDeleted function BEFORE it's used in useEffect
     const messageDeleted = (messageId) => {
         console.log("Message deleted event received with ID:", messageId);
         
         // Filter out the deleted message by ID
         setLocalMessages((prevMessages) => {
             console.log("Filtering messages, current count:", prevMessages.length);
+            
+            // Check if we have any messages to filter
+            if (prevMessages.length === 0) {
+                return [];
+            }
+            
             const filteredMessages = prevMessages.filter((m) => m.id !== messageId);
             console.log("Messages after filtering:", filteredMessages.length);
             return filteredMessages;
         });
-    }
+    };
+    
+    // Improve the messageCreated function to avoid duplicates
+    const messageCreated = (message) => {
+        console.log("Message created event received:", message);
+        
+        // Check if the message should be added to this conversation
+        const shouldAddMessage = 
+            (selectedConversation?.is_group && selectedConversation.id == message.group_id) ||
+            (selectedConversation?.is_user && 
+                (selectedConversation.id == message.sender_id || selectedConversation.id == message.receiver_id));
+        
+        if (shouldAddMessage) {
+            // Check if message already exists to prevent duplicates
+            setLocalMessages((prevMessages) => {
+                // Check if message already exists in the array
+                const messageExists = prevMessages.some(m => m.id === message.id);
+                if (messageExists) {
+                    console.log("Message already exists, not adding duplicate");
+                    return prevMessages;
+                }
+                
+                console.log("Adding new message to conversation");
+                const newMessages = [...prevMessages, message];
+                
+                // Scroll to bottom after new message
+                setTimeout(() => {
+                    if (messagesCtrRef.current) {
+                        messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
+                    }
+                }, 100);
+                
+                return newMessages;
+            });
+        }
+    };
 
-    // Keep only one useEffect for event listeners and remove the duplicate
+    // Keep only one useEffect for event listeners
     useEffect(() => {
         if (!messagesCtrRef.current) return;
         setTimeout(() => {
@@ -84,28 +96,8 @@ function Home({ selectedConversation = null, messages = null }) {
             offDeleted();
         };
     }, [selectedConversation]);
-    
-    // Remove this duplicate useEffect (lines ~115-135)
-    // useEffect(() => {
-    //     if (!messagesCtrRef.current) return;
-    //     setTimeout(() => {
-    //         messagesCtrRef.current.scrollTop =
-    //             messagesCtrRef.current.scrollHeight;
-    //     }, 10);
-    //     messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
-    // 
-    //     const offCreated = on("message.created", messageCreated);
-    //     // Make sure this matches the event name in MessageOptionsDropdown
-    //     const offDeleted = on("messageDeleted", messageDeleted);
-    // 
-    //     setScrollFromBottom(0);
-    //     setNoMoreMessages(false);
-    // 
-    //     return () => {
-    //         offCreated();
-    //         offDeleted();
-    //     };
-    // }, [selectedConversation]);
+
+    // REMOVE the duplicate useEffect here
 
     const loadMoreMessages = useCallback(() => {
         if (noMoreMessages) {
@@ -113,14 +105,13 @@ function Home({ selectedConversation = null, messages = null }) {
         }
 
         const firstMessage = localMessages[0];
-        axios // Use lowercase axios here
+        axios
             .get(route("message.loadOlder", firstMessage.id))
             .then(({ data }) => {
                 if (data.data.length === 0) {
                     setNoMoreMessages(true);
                     return;
                 }
-                // Calculate how much is scrolled from bottom and scroll to the same position from bottom after messages are loaded
                 const scrollHeight = messagesCtrRef.current.scrollHeight;
                 const scrollTop = messagesCtrRef.current.scrollTop;
                 const clientHeight = messagesCtrRef.current.clientHeight;
@@ -140,31 +131,10 @@ function Home({ selectedConversation = null, messages = null }) {
             attachments,
             ind,
         });
-        // console.log("onAttachmentClick ", attachments);
         setShowAttachmentPreview(true);
     };
-    // console.log("showAttachmentPreview", showAttachmentPreview);
-    // console.log("previewAttachment", previewAttachment);
-    useEffect(() => {
-        if (!messagesCtrRef.current) return;
-        setTimeout(() => {
-            messagesCtrRef.current.scrollTop =
-                messagesCtrRef.current.scrollHeight;
-        }, 10);
-        messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
 
-        const offCreated = on("message.created", messageCreated);
-        // Make sure this matches the event name in MessageOptionsDropdown
-        const offDeleted = on("messageDeleted", messageDeleted);
-
-        setScrollFromBottom(0);
-        setNoMoreMessages(false);
-
-        return () => {
-            offCreated();
-            offDeleted();
-        };
-    }, [selectedConversation]);
+    // REMOVE the duplicate useEffect here - this is causing the error
 
     useEffect(() => {
         setLocalMessages(messages ? messages.data.reverse() : []);
@@ -237,7 +207,7 @@ function Home({ selectedConversation = null, messages = null }) {
                                 ></div>
                                 {localMessages.map((message) => (
                                     <MessageItem
-                                        key={`message-${message.id}`} // Add a prefix to ensure uniqueness
+                                        key={`message-${message.id}`}
                                         message={message}
                                         attachmentClick={onAttachmentClick}
                                     />
@@ -258,7 +228,6 @@ function Home({ selectedConversation = null, messages = null }) {
             )}
         </>
     );
-  
 }
 
 Home.layout = (page) => {
