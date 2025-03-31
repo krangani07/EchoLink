@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    // console.log("user", user);
+
     const conversations = usePage().props.conversations;
     const {emit} = useEventBus();
     const [showingNavigationDropdown, setShowingNavigationDropdown] = 
@@ -26,7 +26,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         parseInt(conversation.id),
                     ].sort((a,b) => a-b).join('-')}`;
                 }
-                // console.log("channel", channel);
+
               
                 Echo.private(channel)
                 .error((error) => {
@@ -55,7 +55,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 if(conversation.is_group) {
                     Echo.private(`group.deleted.${conversation.id}`)
                     .listen("GroupDeleted",(e)=>{
-                        console.log("group deleted ",e);
+                   
                         emit("group.deleted", {id:e.id,name: e.name});
                     }).error((e)=>{
                         console.log("group deleted error ",e);

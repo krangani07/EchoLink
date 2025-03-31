@@ -19,8 +19,6 @@ const ChatLayout = ({ children }) => {
 
     const isUserOnline = (userId) => onlineUsers[userId];
 
-    // console.log("conversations", conversations);
-    // console.log("selectedConversation", selectedConversation);
 
     const onSearch = (ev) => {
         const search = ev.target.value.toLowerCase();
@@ -67,11 +65,9 @@ const ChatLayout = ({ children }) => {
     };
 
     const messageDeleted = (data) => {
-        console.log("Message deleted event received in ChatLayout:", data);
 
         // Check if we have the previous message
         if (!data.prevMessage) {
-            console.log("No previous message data received");
             return;
         }
 
@@ -204,6 +200,7 @@ const ChatLayout = ({ children }) => {
             Echo.leave("online");
         };
     }, []);
+
     return (
         <>
             <div className="flex-1 w-full flex overflow-hidden">

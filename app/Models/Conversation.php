@@ -3,6 +3,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Http\Resources\UserResource;
 
 class Conversation extends Model
 {
@@ -24,7 +25,7 @@ class Conversation extends Model
     {
         return $this->belongsTo(Message::class, 'last_message_id');
     }
-    public static function getConversationsForSidebar(User $user)
+    public static function getConversationsForSidebar($user)
     {
         $users = User::getUsersExceptUser($user);
         $groups = Group::getGroupsForUser($user);
