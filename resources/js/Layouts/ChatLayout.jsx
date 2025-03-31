@@ -38,7 +38,10 @@ const ChatLayout = ({ children }) => {
                     !u.is_group && 
                     (u.id == message.sender_id || u.id == message.receiver_id)
                 ) {
-                    u.last_message = message.message;
+                    // Check if message has attachments
+                    u.last_message = message.attachments && message.attachments.length > 0 
+                        ? "Attachment" 
+                        : message.message;
                     u.last_message_date = message.created_at;
                     return u;
                 }
@@ -47,7 +50,10 @@ const ChatLayout = ({ children }) => {
                     u.is_group &&
                     u.id == message.group_id
                 ){
-                    u.last_message = message.message;
+                    // Check if message has attachments
+                    u.last_message = message.attachments && message.attachments.length > 0 
+                        ? "Attachment" 
+                        : message.message;
                     u.last_message_date = message.created_at;
                     return u;
                 }
@@ -72,14 +78,22 @@ const ChatLayout = ({ children }) => {
                 if (!data.prevMessage.group_id && !conversation.is_group && 
                     (conversation.id === data.prevMessage.sender_id || 
                      conversation.id === data.prevMessage.receiver_id)) {
-                    conversation.last_message = data.prevMessage.message;
+                    // Check if previous message has attachments
+                    conversation.last_message = data.prevMessage.attachments && 
+                        data.prevMessage.attachments.length > 0 
+                        ? "Attachment" 
+                        : data.prevMessage.message;
                     conversation.last_message_date = data.prevMessage.created_at;
                     return conversation;
                 }
                 // For group messages
                 if (data.prevMessage.group_id && conversation.is_group && 
                     conversation.id === data.prevMessage.group_id) {
-                    conversation.last_message = data.prevMessage.message;
+                    // Check if previous message has attachments
+                    conversation.last_message = data.prevMessage.attachments && 
+                        data.prevMessage.attachments.length > 0 
+                        ? "Attachment" 
+                        : data.prevMessage.message;
                     conversation.last_message_date = data.prevMessage.created_at;
                     return conversation;
                 }
