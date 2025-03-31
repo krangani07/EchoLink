@@ -20,9 +20,8 @@ function Home({ selectedConversation = null, messages = null }) {
     const [previewAttachment, setpreviewAttachment] = useState({});
     const { on } = useEventBus();
     
-    // Define messageDeleted function BEFORE it's used in useEffect
-    const messageDeleted = (messageId) => {
-        console.log("Message deleted event received with ID:", messageId);
+    const messageDeleted = (data) => {
+        console.log("Message deleted event received in Home:", data);
         
         // Filter out the deleted message by ID
         setLocalMessages((prevMessages) => {
@@ -33,7 +32,7 @@ function Home({ selectedConversation = null, messages = null }) {
                 return [];
             }
             
-            const filteredMessages = prevMessages.filter((m) => m.id !== messageId);
+            const filteredMessages = prevMessages.filter((m) => m.id !== data.messageId);
             console.log("Messages after filtering:", filteredMessages.length);
             return filteredMessages;
         });

@@ -29,9 +29,16 @@ export default function MessageOptionsDropdown({ message }) {
         axios
             .delete(route('message.destroy', message.id))
             .then((res) => {
-                // Emit just the message ID, not an object
-                console.log("Message deleted, emitting event with ID:", message.id);
-                emit("messageDeleted", message.id);
+                console.log("Message deleted successfully:", res.data);
+                
+                // Extract the previous message from the response
+                const prevMessage = res.data.message;
+                
+                // Emit both the message ID and the previous message
+                emit("messageDeleted", {
+                    messageId: message.id,
+                    prevMessage: prevMessage
+                });
             })
             .catch((err) => {
                 console.error("Error deleting message:", err);

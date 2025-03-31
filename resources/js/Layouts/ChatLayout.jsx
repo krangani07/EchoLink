@@ -5,7 +5,7 @@ import TextInput from "@/Components/TextInput";
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import ConversationItem from "@/Components/App/ConversationItem";
 import { useEventBus } from "@/Eventbus";
-
+ 
 const ChatLayout = ({ children }) => {
     const page = usePage();
     const conversations = page.props.conversations;
@@ -56,19 +56,44 @@ const ChatLayout = ({ children }) => {
         });
     }
 
-    const messageDeleted = ({prevMessage}) => {
-        if (!prevMessage) {
+    const messageDeleted = (data) => {
+        console.log("Message deleted event received in ChatLayout:", data);
+        
+        // Check if we have the previous message
+        if (!data.prevMessage) {
+            console.log("No previous message data received");
             return;
         }
-        messageCreated(prevMessage);
+        
+        // Use the previous message to update the conversation
+        setLocalConversations((oldConversations) => {
+            return oldConversations.map((conversation) => {
+                // For direct messages
+                if (!data.prevMessage.group_id && !conversation.is_group && 
+                    (conversation.id === data.prevMessage.sender_id || 
+                     conversation.id === data.prevMessage.receiver_id)) {
+                    conversation.last_message = data.prevMessage.message;
+                    conversation.last_message_date = data.prevMessage.created_at;
+                    return conversation;
+                }
+                // For group messages
+                if (data.prevMessage.group_id && conversation.is_group && 
+                    conversation.id === data.prevMessage.group_id) {
+                    conversation.last_message = data.prevMessage.message;
+                    conversation.last_message_date = data.prevMessage.created_at;
+                    return conversation;
+                }
+                return conversation;
+            });
+        });
     }
 
     useEffect(() => {
         const offCreated = on("message.created", messageCreated);
-        const offDeleted = on("message.deleted", messageDeleted);
+        const offDeleted = on("messageDeleted", messageDeleted);
         return () => {
             offCreated();
-            offDreated();
+            offDeleted();
         }
     }, [on]);
 
