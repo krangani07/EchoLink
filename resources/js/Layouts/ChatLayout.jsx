@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import TextInput from "@/Components/TextInput";
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import ConversationItem from "@/Components/App/ConversationItem";
-
+import { useEventBus } from "@/Eventbus";
+ 
 const ChatLayout = ({ children }) => {
     const page = usePage();
     const conversations = page.props.conversations;
@@ -12,6 +13,7 @@ const ChatLayout = ({ children }) => {
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState({});
+    const { on } = useEventBus();
 
     const isUserOnline = (userId) => onlineUsers[userId];
 
@@ -26,6 +28,88 @@ const ChatLayout = ({ children }) => {
             })
         );
     }
+
+    const messageCreated = (message) => {
+        setLocalConversations((oldUsers) => {
+            return oldUsers.map((u) => {
+                // If the message is for user
+                if (
+                    message.receiver_id &&
+                    !u.is_group && 
+                    (u.id == message.sender_id || u.id == message.receiver_id)
+                ) {
+                    // Check if message has attachments
+                    u.last_message = message.attachments && message.attachments.length > 0 
+                        ? "Attachment" 
+                        : message.message;
+                    u.last_message_date = message.created_at;
+                    return u;
+                }
+                if (
+                    message.group_id &&
+                    u.is_group &&
+                    u.id == message.group_id
+                ){
+                    // Check if message has attachments
+                    u.last_message = message.attachments && message.attachments.length > 0 
+                        ? "Attachment" 
+                        : message.message;
+                    u.last_message_date = message.created_at;
+                    return u;
+                }
+                return u;
+            });
+        });
+    }
+
+    const messageDeleted = (data) => {
+        console.log("Message deleted event received in ChatLayout:", data);
+        
+        // Check if we have the previous message
+        if (!data.prevMessage) {
+            console.log("No previous message data received");
+            return;
+        }
+        
+        // Use the previous message to update the conversation
+        setLocalConversations((oldConversations) => {
+            return oldConversations.map((conversation) => {
+                // For direct messages
+                if (!data.prevMessage.group_id && !conversation.is_group && 
+                    (conversation.id === data.prevMessage.sender_id || 
+                     conversation.id === data.prevMessage.receiver_id)) {
+                    // Check if previous message has attachments
+                    conversation.last_message = data.prevMessage.attachments && 
+                        data.prevMessage.attachments.length > 0 
+                        ? "Attachment" 
+                        : data.prevMessage.message;
+                    conversation.last_message_date = data.prevMessage.created_at;
+                    return conversation;
+                }
+                // For group messages
+                if (data.prevMessage.group_id && conversation.is_group && 
+                    conversation.id === data.prevMessage.group_id) {
+                    // Check if previous message has attachments
+                    conversation.last_message = data.prevMessage.attachments && 
+                        data.prevMessage.attachments.length > 0 
+                        ? "Attachment" 
+                        : data.prevMessage.message;
+                    conversation.last_message_date = data.prevMessage.created_at;
+                    return conversation;
+                }
+                return conversation;
+            });
+        });
+    }
+
+    useEffect(() => {
+        const offCreated = on("message.created", messageCreated);
+        const offDeleted = on("messageDeleted", messageDeleted);
+        return () => {
+            offCreated();
+            offDeleted();
+        }
+    }, [on]);
 
     useEffect(() => {
         setSortedConversations(

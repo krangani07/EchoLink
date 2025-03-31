@@ -1,15 +1,18 @@
+import NewMessageNotification from '@/Components/App/NewMessageNotification';
+import Toast from '@/Components/App/Toast';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import { useEventBus } from '@/Eventbus';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    console.log("user", user);
+    // console.log("user", user);
     const conversations = usePage().props.conversations;
-
+    const {emit} = useEventBus();
     const [showingNavigationDropdown, setShowingNavigationDropdown] = 
     useState(false);
 
@@ -23,7 +26,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         parseInt(conversation.id),
                     ].sort((a,b) => a-b).join('-')}`;
                 }
-                console.log("channel", channel);
+                // console.log("channel", channel);
               
                 Echo.private(channel).error((error) => {
                     console.log(error);
@@ -31,21 +34,21 @@ export default function AuthenticatedLayout({ header, children }) {
                 .listen("SocketMessage",(e)=>{
                     console.log("socket Message ",e);
                     const message = e.message;
-                    // emit("message.created", message);
+                    emit("message.created", message);
                     if (message.sender_id === user.id) {
                         return;
                     }
-                    // emit("newMessageNotification",{
-                    //     user: message.sender,
-                    //     group_id: message.group_id,
-                    //     message:
-                    //         message.message ||
-                    //         `Shared${
-                    //             message.attachments.length === 1 
-                    //             ? "an attachment" :
-                    //             message.attachments.length + " attachments"
-                    //         }`
-                    // });
+                    emit("newMessageNotification",{
+                        user: message.sender,
+                        group_id: message.group_id,
+                        message:
+                            message.message ||
+                            `Shared${
+                                message.attachments.length === 1 
+                                ? "an attachment" :
+                                message.attachments.length + " attachments"
+                            }`
+                    });
                 })
 
             });
@@ -64,6 +67,7 @@ export default function AuthenticatedLayout({ header, children }) {
             };
         }, [conversations]);
     return (
+        <>
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col h-screen">
             <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -224,5 +228,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {children}
         </div>
+        <Toast />
+        <NewMessageNotification />
+        </>
     );
 }

@@ -62,7 +62,7 @@ class MessageController extends Controller
                 ->paginate(10);
         }
 
-        return MessageResource::collection($message);
+        return MessageResource::collection($messages);
     }
 
     public function store(StoreMessageRequest $request)
@@ -107,7 +107,33 @@ class MessageController extends Controller
         if ($message->sender_id !== auth()->id()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
+
+        $group=null;
+        $conversation=null;
+        $lastMessage = null;
+        
+        if ($message->group_id) {
+            $group = Group::where('last_message_id', $message->id)->first();
+        } else {
+            $conversation = Conversation::where('last_message_id', $message->id)->first();
+        }
+
+        // Store message ID before deleting
+        $messageId = $message->id;
         $message->delete();
-        return response('', 204);
+        
+        if ($group) {
+            $group = Group::find($group->id);
+            $lastMessage = $group->lastMessage;
+        } else if($conversation){
+            $conversation = Conversation::find($conversation->id);
+            $lastMessage = $conversation->lastMessage;
+        }
+        
+        // Always return a response
+        return response()->json([
+            'message' => $lastMessage ? new MessageResource($lastMessage) : null,
+            'deletedMessageId' => $messageId
+        ]);
     }
 }

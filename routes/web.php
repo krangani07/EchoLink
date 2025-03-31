@@ -23,9 +23,9 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::get('user/{user}',[MessageController::class,'byUser'])->name('chat.user');
     Route::get('group/{group}',[MessageController::class,'byGroup'])->name('chat.group');
     Route::post('/message',[MessageController::class,'store'])->name('message.store');
-    Route::post('/message/{message}',[MessageController::class,'destroy'])->name('Message.destroy');
-    Route::get('/message/older/{message}',[MessageController::class,'loadOlder'])->name('Message.loadOlder');
-
+    Route::delete('/message/{message}',[MessageController::class,'destroy'])->name('message.destroy');
+    // Route::get('/message/older/{message}',[MessageController::class,'loadOlder'])->name('Message.loadOlder');
+    Route::get('/messages/load-older/{message}', [MessageController::class, 'loadOlder'])->name('message.loadOlder');
 });
 
 
