@@ -8,6 +8,7 @@ import MessageOptionsDropdown from "./MessageOptionsDropdown";
 
 const MessageItem = ({ message,attachmentClick }) => {
     const currentUser = usePage().props.auth.user;
+
     return (
         <div
             className={

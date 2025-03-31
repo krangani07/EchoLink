@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Http\Resources\UserResource;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -31,12 +32,13 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? (new UserResource($user))->resolve() : null,
             ],
-            'conversations' => Auth::id() ? Conversation::getConversationsForSidebar(Auth::user()) : [],
+            'conversations' => $user ? Conversation::getConversationsForSidebar($user) : [],
         ];
     }
 }

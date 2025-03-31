@@ -21,11 +21,11 @@ function Home({ selectedConversation = null, messages = null }) {
     const { on } = useEventBus();
     
     const messageDeleted = (data) => {
-        console.log("Message deleted event received in Home:", data);
+
         
         // Filter out the deleted message by ID
         setLocalMessages((prevMessages) => {
-            console.log("Filtering messages, current count:", prevMessages.length);
+
             
             // Check if we have any messages to filter
             if (prevMessages.length === 0) {
@@ -33,14 +33,12 @@ function Home({ selectedConversation = null, messages = null }) {
             }
             
             const filteredMessages = prevMessages.filter((m) => m.id !== data.messageId);
-            console.log("Messages after filtering:", filteredMessages.length);
             return filteredMessages;
         });
     };
     
     // Improve the messageCreated function to avoid duplicates
     const messageCreated = (message) => {
-        console.log("Message created event received:", message);
         
         // Check if the message should be added to this conversation
         const shouldAddMessage = 
@@ -54,11 +52,10 @@ function Home({ selectedConversation = null, messages = null }) {
                 // Check if message already exists in the array
                 const messageExists = prevMessages.some(m => m.id === message.id);
                 if (messageExists) {
-                    console.log("Message already exists, not adding duplicate");
                     return prevMessages;
                 }
                 
-                console.log("Adding new message to conversation");
+
                 const newMessages = [...prevMessages, message];
                 
                 // Scroll to bottom after new message
@@ -82,7 +79,6 @@ function Home({ selectedConversation = null, messages = null }) {
         }, 10);
         messagesCtrRef.current.scrollTop = messagesCtrRef.current.scrollHeight;
     
-        console.log("Setting up event listeners");
         const offCreated = on("message.created", messageCreated);
         const offDeleted = on("messageDeleted", messageDeleted);
         
@@ -90,7 +86,6 @@ function Home({ selectedConversation = null, messages = null }) {
         setNoMoreMessages(false);
     
         return () => {
-            console.log("Cleaning up event listeners");
             offCreated();
             offDeleted();
         };
@@ -116,7 +111,7 @@ function Home({ selectedConversation = null, messages = null }) {
                 const clientHeight = messagesCtrRef.current.clientHeight;
                 const tmpScrollFromBottom =
                     scrollHeight - scrollTop - clientHeight;
-                console.log("tmpScrollFromBottom ", tmpScrollFromBottom);
+              
                 setScrollFromBottom(scrollHeight - scrollTop - clientHeight);
 
                 setLocalMessages((prevMessages) => {

@@ -29,7 +29,7 @@ const ConversationItem = ({
         classes = "border-blue-500 bg-black/20";
       }
     }
-  
+  // console.log(conversation);
     return (
       <Link
         href={
@@ -76,7 +76,7 @@ const ConversationItem = ({
                     </p>
                 )}
             </div>
-            {currentUser.is_admin && conversation.is_user && (
+            {!!currentUser.is_admin && conversation.is_user && (
                 <UserOptionsDropdown conversation={conversation} />
             )}
         </Link>
