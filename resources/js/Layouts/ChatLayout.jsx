@@ -123,12 +123,10 @@ const ChatLayout = ({ children }) => {
                 return oldConversations.filter((con) => con.id !== id);
             });
             emit("toast.show", `Group ${name} was deleted`);
+            console.log("Group deleted", selectedConversation);
             
-            if (!selectedConversation||
-                selectedConversation &&
-                selectedConversation.is_group &&
-                selectedConversation.id === id
-            ) {
+            if (!selectedConversation || 
+                (selectedConversation.is_group && selectedConversation.id === id)) {
                 router.visit(route("dashboard"));
             }
         });
