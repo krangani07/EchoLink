@@ -132,18 +132,32 @@ const ChatLayout = ({ children }) => {
                 router.visit(route("dashboard"));
             }
         });
+        
+        // Add listener for conversation updates
+        const offConversationUpdated = on("conversation.updated", (updatedData) => {
+            setLocalConversations((oldConversations) => {
+                return oldConversations.map((conversation) => {
+                    if (conversation.id === updatedData.id) {
+                        return { ...conversation, ...updatedData };
+                    }
+                    return conversation;
+                });
+            });
+        });
+        
         return () => {
             offCreated();
             offDeleted();
             offModelShow();
             offGroupDelete();
+            offConversationUpdated(); // Clean up the new listener
         };
     }, [on]);
 
     useEffect(() => {
         setSortedConversations(
             localConversations.sort((a, b) => {
-                if (a.bloacked_at && b.blocked_at) {
+                if (a.blocked_at && b.blocked_at) {  // Fixed typo: bloacked_at -> blocked_at
                     return a.blocked_at > b.blocked_at ? -1 : 1;
                 } else if (a.blocked_at) {
                     return 1;
