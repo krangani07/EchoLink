@@ -12,7 +12,13 @@ export default function UserOptionsDropdown({ conversation }) {
     // Add state to track if menu should be shown
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const changeUserRole = () => {
+    const changeUserRole = (e) => {
+        // Add event parameter and explicitly prevent default
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
         // Prevent multiple attempts
         if (isChangingRole.current) return;
         
@@ -26,8 +32,16 @@ export default function UserOptionsDropdown({ conversation }) {
         setIsMenuOpen(false);
         
         axios
-            .post(route("user.changeRole", conversation.id))
+            .post(route("user.changeRole", conversation.id), {}, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
             .then((res) => {
+                console.log('Role change response:', res);
+                
                 // Emit event to update conversation in parent component
                 emit("conversation.updated", {
                     id: conversation.id,
@@ -37,7 +51,7 @@ export default function UserOptionsDropdown({ conversation }) {
                 emit("toast.show", res.data.message);
             })
             .catch((err) => {
-                console.error(err);
+                console.error('Role change error:', err);
                 emit("toast.show", "Failed to change user role");
             })
             .finally(() => {
@@ -152,11 +166,13 @@ export default function UserOptionsDropdown({ conversation }) {
                                     <div className="px-1 py-1">
                                         <Menu.Item>
                                             {({ active }) => (
-                                                <button
-                                                    type="button"
-                                                    onClick={changeUserRole}
+                                                <div
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={(e) => changeUserRole(e)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && changeUserRole(e)}
                                                     className={`${active ? "bg-black/30 text-white" : "text-gray-100"
-                                                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                                        } group flex w-full items-center rounded-md px-2 py-2 text-sm cursor-pointer`}
                                                 >
                                                     {conversation.is_admin ? (
                                                         <>
@@ -169,7 +185,7 @@ export default function UserOptionsDropdown({ conversation }) {
                                                             Make Admin
                                                         </>
                                                     )}
-                                                </button>
+                                                </div>
                                             )}
                                         </Menu.Item>
                                     </div>

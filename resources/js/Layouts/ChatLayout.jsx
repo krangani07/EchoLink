@@ -150,14 +150,14 @@ const ChatLayout = ({ children }) => {
             offDeleted();
             offModelShow();
             offGroupDelete();
-            offConversationUpdated(); // Clean up the new listener
+            offConversationUpdated();
         };
     }, [on]);
 
     useEffect(() => {
         setSortedConversations(
             localConversations.sort((a, b) => {
-                if (a.blocked_at && b.blocked_at) {  // Fixed typo: bloacked_at -> blocked_at
+                if (a.blocked_at && b.blocked_at) { 
                     return a.blocked_at > b.blocked_at ? -1 : 1;
                 } else if (a.blocked_at) {
                     return 1;
