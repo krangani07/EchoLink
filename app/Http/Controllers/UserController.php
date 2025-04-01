@@ -6,6 +6,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserCreated;
+use App\Mail\UserBlockedUnblocked;
+use App\Mail\UserRoleChanged;
 
 class UserController extends Controller
 {
@@ -18,13 +22,13 @@ class UserController extends Controller
         ]);
 
         // Generate and assign a random password
-        // $rawPassword = Str::random(8);
-        $rawPassword = '21212121';
+        $rawPassword = Str::random(8);
+        // $rawPassword = '21212121';
         $data['password'] = bcrypt($rawPassword);
         $data['email_verified_at'] = now();
 
         $user = User::create($data);
-
+        Mail::to($user)->send(new UserCreated($user, $rawPassword));
         return redirect()->back();
     }
     
@@ -32,6 +36,7 @@ class UserController extends Controller
     {
         $user->update(['is_admin' => !$user->is_admin]);
         $message = "User role has been changed to " . ($user->is_admin ? '"Admin"' : '"Regular User"');
+        Mail::to($user)->send(new UserRoleChanged($user));
         return response()->json(['message' => $message]);
     }
     
@@ -45,7 +50,7 @@ class UserController extends Controller
             $message = 'User "' . $user->name . '" has been blocked';
         }
         $user->save();
-        
+        Mail::to($user)->send(new UserBlockedUnblocked($user));
         return response()->json(['message' => $message]);
     }
 }

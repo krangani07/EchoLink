@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/auth.php';
 
 
-Route::middleware(['auth','verified'])->group(function () {
+Route::middleware(['auth','verified','active'])->group(function () {
     Route::get('/',[HomeController::class,'home'])->name('dashboard');
     Route::get('user/{user}',[MessageController::class,'byUser'])->name('chat.user');
     Route::get('group/{group}',[MessageController::class,'byGroup'])->name('chat.group');
