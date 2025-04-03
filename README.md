@@ -14,7 +14,7 @@ EchoLink is a real-time chat application built with Laravel, Laravel Reverb, Ine
 
 1. Clone the repository:
 ```
-git clone
+git clone https://github.com/krangani07/EchoLink.git
 cd EchoLink
 ```
 2. Install PHP dependencies:
