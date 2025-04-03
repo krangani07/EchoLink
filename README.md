@@ -1,6 +1,6 @@
 # EchoLink
 
-EchoLink is a real-time chat application built with Laravel, Inertia.js, and React.
+EchoLink is a real-time chat application built with Laravel, Laravel Reverb, Inertia.js, and React.
 
 ## Prerequisites
 
