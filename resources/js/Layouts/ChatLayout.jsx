@@ -123,27 +123,39 @@ const ChatLayout = ({ children }) => {
                 return oldConversations.filter((con) => con.id !== id);
             });
             emit("toast.show", `Group ${name} was deleted`);
+            console.log("Group deleted", selectedConversation);
             
-            if (!selectedConversation||
-                selectedConversation &&
-                selectedConversation.is_group &&
-                selectedConversation.id === id
-            ) {
+            if (!selectedConversation || 
+                (selectedConversation.is_group && selectedConversation.id === id)) {
                 router.visit(route("dashboard"));
             }
         });
+        
+        // Add listener for conversation updates
+        const offConversationUpdated = on("conversation.updated", (updatedData) => {
+            setLocalConversations((oldConversations) => {
+                return oldConversations.map((conversation) => {
+                    if (conversation.id === updatedData.id) {
+                        return { ...conversation, ...updatedData };
+                    }
+                    return conversation;
+                });
+            });
+        });
+        
         return () => {
             offCreated();
             offDeleted();
             offModelShow();
             offGroupDelete();
+            offConversationUpdated();
         };
     }, [on]);
 
     useEffect(() => {
         setSortedConversations(
             localConversations.sort((a, b) => {
-                if (a.bloacked_at && b.blocked_at) {
+                if (a.blocked_at && b.blocked_at) { 
                     return a.blocked_at > b.blocked_at ? -1 : 1;
                 } else if (a.blocked_at) {
                     return 1;
